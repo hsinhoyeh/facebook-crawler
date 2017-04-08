@@ -1,0 +1,15 @@
+DROP DATABASE IF EXISTS `FacebookDB`;
+CREATE DATABASE `FacebookDB`;
+
+use FacebookDB;
+
+CREATE TABLE groups (
+  id varchar(255) NOT NULL,
+  name VARCHAR(4095) NOT NULL,
+  privacy VARCHAR(255) NOT NULL,
+  members INT NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE = InnoDB;
+
+ALTER TABLE FacebookDB.groups MODIFY COLUMN name VARCHAR(4095)
+    CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;
