@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 """
 A simple example script to get groups under a certain keywords.
 """
@@ -6,12 +7,14 @@ import requests
 import logging
 import os
 import re
+import csv
 
 from sqlalchemy import create_engine, exists
 from sqlalchemy.orm import sessionmaker
 
 from model.data import Group
 from string import ascii_lowercase
+from time import sleep
 
 logging.basicConfig(filename='example.log',level=logging.INFO)
 
@@ -88,6 +91,7 @@ def request_in_deeper(graph, url, args=None):
     id_to_info = {}
     while len(id_to_info) < maximum:
         resp = graph.request(url, args=args, method='GET')
+        sleep(0.1) # avoid to hit rate limit per second
         logging.info("search, url:%s, args:%s, count:%d, resp:%s", url, args, len(resp['data']), resp)
         for group_entity in resp['data']:
             if 'id' not in group_entity:
@@ -101,6 +105,14 @@ def request_in_deeper(graph, url, args=None):
             break # if no paging
     return id_to_info
 
+def dump(session):
+    with open('example.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        for group in session.query(Group).all():
+            entity = group.__dict__
+            name = entity['name'].encode('utf-8').decode('unicode_escape').replace('\n', '').replace(' ', '-').replace('，', '-').replace('、', '-')
+            writer.writerow([str(entity['id']), name, entity['privacy'], entity['members']])
+
 def run(session):
     get_groups(session)
 
@@ -111,6 +123,7 @@ def main():
     session = Session()
 
     run(session)
+    #dump(session)
 
     connection.close()
 
