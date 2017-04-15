@@ -51,7 +51,7 @@ def get_group_in_deeper(session, graph, args=None):
 
         dataIn = Group()
         dataIn.id = entity['id']
-        dataIn.name = entity['name'].encode('unicode_escape')
+        dataIn.name = entity['name']
         dataIn.privacy = entity['privacy']
         dataIn.members = entity['members']
 

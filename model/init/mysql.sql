@@ -4,12 +4,33 @@ CREATE DATABASE `FacebookDB`;
 use FacebookDB;
 
 CREATE TABLE groups (
-  id varchar(255) NOT NULL,
+  id VARCHAR(255) NOT NULL,
   name VARCHAR(4095) NOT NULL,
   privacy VARCHAR(255) NOT NULL,
   members INT NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
+CREATE TABLE feeds (
+  id VARCHAR(255) NOT NULL,
+  message VARCHAR(4095) NOT NULL,
+  updated_time DATETIME NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE = InnoDB;
+
+CREATE TABLE comments (
+  id VARCHAR(255) NOT NULL,
+  feed_id VARCHAR(255) NOT NULL,
+  from_id VARCHAR(255) NOT NULL,
+  message VARCHAR(2095) NOT NULL,
+  created_time DATETIME NOT NULL,
+  FOREIGN KEY (feed_id) REFERENCES feeds(id),
+  PRIMARY KEY (id)
+) ENGINE = InnoDB;
+
 ALTER TABLE FacebookDB.groups MODIFY COLUMN name VARCHAR(4095)
+    CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;
+ALTER TABLE FacebookDB.feeds MODIFY COLUMN message VARCHAR(4095)
+    CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;
+ALTER TABLE FacebookDB.comments MODIFY COLUMN message VARCHAR(4095)
     CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;
