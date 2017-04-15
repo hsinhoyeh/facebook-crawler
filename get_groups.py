@@ -2,45 +2,20 @@
 """
 A simple example script to get groups under a certain keywords.
 """
-import facebook
-import requests
-import logging
-import os
 import re
 import csv
+import logging
 
-from sqlalchemy import create_engine, exists
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from utility import Dedup, accessToken, storeDSN
 from model.data import Group
-from string import ascii_lowercase
-from time import sleep
+from api import GraphAPI
 
-logging.basicConfig(filename='example.log',level=logging.INFO)
-
-maximum = 100000
-
-class Dedup:
-    seen_ids = {}
-    def add(self, id):
-        if id in self.seen_ids:
-            return False
-        self.seen_ids[id]=True
-        return True
-    def len(self):
-        return len(self.seen_ids)
+logging.basicConfig(filename='example.log', level=logging.INFO)
 
 dedup = Dedup()
-
-def accessToken():
-    if 'fbToken' in os.environ:
-        return os.environ['fbToken']
-    return ""
-
-def storeDSN():
-    if 'dsn' in os.environ:
-        return os.environ['dsn']
-    return ""
 
 def get_groups(session):
 
@@ -55,7 +30,7 @@ def get_groups(session):
 
     print("visited %d before", dedup.len())
 
-    graph = facebook.GraphAPI(accessToken())
+    graph = GraphAPI(accessToken(), logging=logging)
     for c in ascii_lowercase:
         queryArgs['q'] = c
         print("args:", queryArgs)
@@ -86,24 +61,7 @@ def get_group_in_deeper(session, graph, args=None):
 
 """ return {'id': body:{}}} """
 def request_in_deeper(graph, url, args=None):
-    if 'limit' not in args:
-        args['limit'] = 100
-    id_to_info = {}
-    while len(id_to_info) < maximum:
-        resp = graph.request(url, args=args, method='GET')
-        sleep(0.1) # avoid to hit rate limit per second
-        logging.info("search, url:%s, args:%s, count:%d, resp:%s", url, args, len(resp['data']), resp)
-        for group_entity in resp['data']:
-            if 'id' not in group_entity:
-                logging.info('skip group: %s', group_entity)
-                continue
-            gid = group_entity['id']
-            id_to_info[gid] = group_entity
-        if 'paging' in resp and 'cursors' in resp['paging'] and 'after' in resp['paging']['cursors']:
-            args['after'] = resp['paging']['cursors']['after']
-        else:
-            break # if no paging
-    return id_to_info
+    return graph.request(url, args)
 
 def dump(session):
     with open('example.csv', 'w', newline='') as csvfile:
