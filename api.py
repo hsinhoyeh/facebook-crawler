@@ -13,17 +13,23 @@ from datetime import datetime
 MAXIMUM_ELEMENTS = 100000
 
 class GraphAPI(object):
-    def __init__(self, access_token=None, logging=None, options=None):
+    def __init__(self, access_token=None, logger=None, options=None):
         self.access_token = access_token
         self.graph = facebook.GraphAPI(self.access_token)
         self.maximum_elemets = MAXIMUM_ELEMENTS
         if options and 'maximum_elements' in options:
             self.maximum_elemets = options['maximum_elemets']
-        if not logging:
+        if not logger:
             self.logging = logging.basicConfig(filename='graphapi.log',level=logging.INFO)
         else:
-            self.logging = logging
+            self.logging = logger
 
+    def put_photo(self, image, album_path, kwargs):
+        return self.graph.put_photo(image, album_path, **kwargs)
+
+    def post_request(self, url, data):
+        resp = self.graph.request(url, method='POST', post_args=data)
+        return resp['id']
 
     def request(self, url, args=None):
         """Fetches the given path in the Graph API page by page.
